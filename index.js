@@ -31,71 +31,73 @@ async function run() {
     // Connect the client to the server	(optional starting in v4.7)
     await client.connect();
 
-
-
-
     const database = client.db(process.env.DATABASE_NAME);
     const jobCollection = database.collection("jobs");
     const companyCollection = database.collection("companies");
 
-
-
     // job get api Recruter can see all jobs, but a candidate can only see active jobs
     app.get("/api/jobs", async (req, res) => {
-        const query = {};
-        if(req.query.companyID){
-            query.companyID = req.query.companyID;
-        }
-        if(req.query.status){
-            query.status = req.query.status;
-        }
-        const cursor = jobCollection.find(query);
-        const result = await cursor.toArray();
-        res.send(result);
-    })
-
-
+      const query = {};
+      if (req.query.companyID) {
+        query.companyID = req.query.companyID;
+      }
+      if (req.query.status) {
+        query.status = req.query.status;
+      }
+      const cursor = jobCollection.find(query);
+      const result = await cursor.toArray();
+      res.send(result);
+    });
 
     // job post api Recruter can post a job
     app.post("/api/jobs", async (req, res) => {
-        const job = req.body;
-        const result = await jobCollection.insertOne(job);
-        res.send(result);
-    })
-
-
-
-
+      const job = req.body;
+      const result = await jobCollection.insertOne(job);
+      res.send(result);
+    });
 
     //companay related api
 
+    // // Recruter can see her all added comapnaies
+    //   app.get("/api/my/companies", async (req, res) => {
+    //       const query = {};
+    //       if(req.query.recruiterId){
+    //           query.recruiterID = req.query.recruiterId;
+    //       }
+    //       const result = await companyCollection.findOne(query);
+    //       res.send(result);
+    //   })
 
-  
-
-
-
-  // Recruter can see her all added comapnaies
     app.get("/api/my/companies", async (req, res) => {
-        const query = {};
-        if(req.query.recruterID){
-            query.recruterID = req.query.recruterID;
-        }
-        const result = await companyCollection.findOne(query);
-        res.send(result);
-    })
+      try {
+        const recruiterId = req.query.recruiterId;
 
+        if (!recruiterId) {
+          return res.status(400).json({
+            message: "recruiterId is required",
+          });
+        }
+
+        const result = await companyCollection.findOne({
+          recruiterId: recruiterId,
+        });
+
+        return res.json(result || null);
+      } catch (error) {
+        console.error("Get recruiter company error:", error);
+
+        return res.status(500).json({
+          message: "Failed to get recruiter company",
+        });
+      }
+    });
 
     // Recruter can add a company
     app.post("/api/companies", async (req, res) => {
-        const company = req.body;
-        const result = await companyCollection.insertOne(company);
-        res.send(result);
-    })
-
-
-
-
-
+      const company = req.body;
+      const result = await companyCollection.insertOne(company);
+      res.send(result);
+    });
 
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
