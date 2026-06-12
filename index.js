@@ -40,7 +40,7 @@ async function run() {
 
 
 
-    // job get api
+    // job get api Recruter can see all jobs, but a candidate can only see active jobs
     app.get("/api/jobs", async (req, res) => {
         const query = {};
         if(req.query.companyID){
@@ -56,10 +56,39 @@ async function run() {
 
 
 
-    // job post api
+    // job post api Recruter can post a job
     app.post("/api/jobs", async (req, res) => {
         const job = req.body;
         const result = await jobCollection.insertOne(job);
+        res.send(result);
+    })
+
+
+
+
+
+    //companay related api
+
+
+  
+
+
+
+  // Recruter can see her all added comapnaies
+    app.get("/api/my/companies", async (req, res) => {
+        const query = {};
+        if(req.query.recruterID){
+            query.recruterID = req.query.recruterID;
+        }
+        const result = await companyCollection.findOne(query);
+        res.send(result);
+    })
+
+
+    // Recruter can add a company
+    app.post("/api/companies", async (req, res) => {
+        const company = req.body;
+        const result = await companyCollection.insertOne(company);
         res.send(result);
     })
 
