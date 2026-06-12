@@ -7,7 +7,7 @@ require("dotenv").config();
 app.use(cors());
 app.use(express.json());
 
-const { MongoClient, ServerApiVersion } = require("mongodb");
+const { MongoClient, ServerApiVersion,ObjectId } = require("mongodb");
 
 app.get("/", (req, res) => {
   res.send("Hello World!");
@@ -92,12 +92,28 @@ async function run() {
       }
     });
 
+
+    app.patch("/api/companies/:id", async (req, res) => {
+  const id = req.params.id;
+  const updatedCompany = req.body;
+  delete updatedCompany._id;
+  const result = await companyCollection.updateOne(
+    { _id: new ObjectId(id) },
+    { $set: { ...updatedCompany, updatedAt: new Date() } }
+  );
+  res.json(result);
+});
+
     // Recruter can add a company
     app.post("/api/companies", async (req, res) => {
       const company = req.body;
       const result = await companyCollection.insertOne(company);
       res.send(result);
     });
+
+
+
+
 
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
